@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Запустить парсер с ссылкой</title>
+</head>
+<body>
+  <h3>Вставьте ссылку для парсинга:</h3>
+  <input type="text" id="urlInput" placeholder="https://example.com" style="width: 300px;" />
+  <button id="runBtn">Запустить парсер</button>
+
+  <pre id="result" style="white-space: pre-wrap; margin-top: 20px;"></pre>
+
+  <script>
+    const token = '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'; // Токен GitHub с правами на repo
+    const repoOwner = 'Fiklesss';                     // Владелец репозитория
+    const repoName = 'drom_parser';                   // Имя репозитория
+    const envFilePath = '.env';                       // Путь к .env в репо
+    const branch = 'main';                            // Ветка, куда пушим
+
+    async function getFileSha() {
+      const res = await fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/contents/${envFilePath}?ref=${branch}`, {
+        headers: { Authorization: `token ${token}` }
+      });
+      if (!res.ok) throw new Error('Не удалось получить .env файл: ' + res.status);
+      const data = await res.json();
+      return data.sha;
+    }
+
+    async function updateEnvFile(newLink, sha) {
+      const res = await fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/contents/${envFilePath}?ref=${branch}`, {
+        headers: { Authorization: `token ${token}` }
+      });
+      if (!res.ok) throw new Error('Не удалось получить содержимое .env');
+      const data = await res.json();
+      const content = atob(data.content);
+
+      const lines = content.split('\n');
+      let found = false;
+      for (let i = 0; i < lines.length; i++) {
+        if (lines[i].startsWith('DROM=')) {
+          lines[i] = `DROM=${newLink}`;
+          found = true;
+          break;
+        }
+      }
+      if (!found) lines.push(`DROM=${newLink}`);
+
+      const updatedContent = lines.join('\n');
+      const encodedContent = btoa(updatedContent);
+
+      const body = {
+        message: `Update DROM link to ${newLink}`,
+        content: encodedContent,
+        sha: sha,
+        branch: branch
+      };
+
+      const updateRes = await fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/contents/${envFilePath}`, {
+        method: 'PUT',
+        headers: {
+          Authorization: `token ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+      });
+
+      if (!updateRes.ok) throw new Error('Ошибка при обновлении .env файла');
+      return true;
+    }
+
+    document.getElementById('runBtn').onclick = async () => {
+      const url = document.getElementById('urlInput').value.trim();
+      const result = document.getElementById('result');
+      result.textContent = '';
+
+      if (!url) {
+        alert('Введите ссылку!');
+        return;
+      }
+
+      try {
+        result.textContent = 'Получаю текущий sha файла...';
+        const sha = await getFileSha();
+
+        result.textContent = 'Обновляю .env...';
+        await updateEnvFile(url, sha);
+
+        result.textContent = '✅ Успешно! Парсер запущен.';
+      } catch (err) {
+        result.textContent = '❌ Ошибка: ' + err.message;
+      }
+    };
+  </script>
+</body>
+</html>
