@@ -1,22 +1,71 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Запустить программу</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 15px;
+      margin: 0;
+      background: #f5f5f5;
+      color: #222;
+    }
+    h3 {
+      font-size: 1.3em;
+      margin-bottom: 10px;
+    }
+    #urlInput {
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+      font-size: 1em;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    #runBtn {
+      margin-top: 15px;
+      padding: 12px 20px;
+      width: 100%;
+      font-size: 1.1em;
+      color: #fff;
+      background-color: #007bff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    #runBtn:hover {
+      background-color: #0056b3;
+    }
+    #result {
+      white-space: pre-wrap;
+      margin-top: 20px;
+      background: #fff;
+      padding: 15px;
+      border-radius: 6px;
+      min-height: 80px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.1);
+      font-size: 0.9em;
+      word-break: break-word;
+    }
+  </style>
 </head>
 <body>
   <h3>Вставьте ссылку:</h3>
-  <input type="text" id="urlInput" placeholder="https://example.com" style="width: 300px;" />
+  <input type="text" id="urlInput" placeholder="https://example.com" autocomplete="url" autocorrect="off" autocapitalize="none" />
   <button id="runBtn">Запустить парсер</button>
 
-  <pre id="result" style="white-space: pre-wrap; margin-top: 20px;"></pre>
+  <pre id="result"></pre>
 
   <script>
     const token = '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'; // Токен GitHub с правами на repo
-    const repoOwner = 'Fiklesss';                     // Владелец репозитория
-    const repoName = 'drom_parser';                   // Имя репозитория
-    const envFilePath = '.env';                       // Путь к .env в репо
-    const branch = 'main';                            // Ветка, куда пушим
+    const repoOwner = 'Fiklesss';
+    const repoName = 'drom_parser';
+    const envFilePath = '.env';
+    const branch = 'main';
 
     async function getFileSha() {
       const res = await fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/contents/${envFilePath}?ref=${branch}`, {
