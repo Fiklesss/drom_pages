@@ -2,92 +2,161 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
   <title>Запустить программу</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      padding: 15px;
-      margin: 0;
-      background: #f5f5f5;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+        Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+      background: #f9fafb;
       color: #222;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      box-sizing: border-box;
     }
     h3 {
-      font-size: 1.3em;
-      margin-bottom: 10px;
+      font-size: 1.5rem;
+      margin-bottom: 15px;
+      text-align: center;
+      color: #333;
     }
     #urlInput {
       width: 100%;
-      max-width: 100%;
+      max-width: 600px;
+      padding: 14px 16px;
+      font-size: 1.1rem;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      outline-offset: 2px;
+      outline-color: transparent;
+      transition: outline-color 0.3s ease, border-color 0.3s ease;
+      margin: 0 auto;
       box-sizing: border-box;
-      font-size: 1em;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
+    }
+    #urlInput:focus {
+      outline-color: #007bff;
+      border-color: #007bff;
     }
     #runBtn {
-      margin-top: 15px;
-      padding: 12px 20px;
+      margin: 20px auto 0;
+      padding: 14px 0;
       width: 100%;
-      font-size: 1.1em;
-      color: #fff;
+      max-width: 600px;
+      font-size: 1.25rem;
+      font-weight: 600;
       background-color: #007bff;
       border: none;
-      border-radius: 6px;
+      border-radius: 8px;
+      color: white;
       cursor: pointer;
-      transition: background-color 0.3s ease;
+      box-shadow: 0 4px 10px rgba(0,123,255,0.3);
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+      user-select: none;
+      display: block;
     }
-    #runBtn:hover {
+    #runBtn:hover,
+    #runBtn:focus {
       background-color: #0056b3;
+      box-shadow: 0 6px 14px rgba(0,86,179,0.5);
+      outline: none;
     }
     #result {
+      max-width: 600px;
+      margin: 25px auto 0;
+      background: white;
+      border-radius: 10px;
+      padding: 16px 20px;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+      font-size: 1rem;
+      color: #444;
       white-space: pre-wrap;
-      margin-top: 20px;
-      background: #fff;
-      padding: 15px;
-      border-radius: 6px;
-      min-height: 80px;
-      box-shadow: 0 0 8px rgba(0,0,0,0.1);
-      font-size: 0.9em;
-      word-break: break-word;
+      min-height: 70px;
+      user-select: text;
+      box-sizing: border-box;
+    }
+    /* Мобильные улучшения */
+    @media (max-width: 640px) {
+      body {
+        padding: 15px 12px;
+      }
+      #urlInput, #runBtn, #result {
+        max-width: 100%;
+      }
+      #urlInput {
+        font-size: 1rem;
+        padding: 12px 14px;
+      }
+      #runBtn {
+        font-size: 1.1rem;
+        padding: 12px 0;
+      }
     }
   </style>
 </head>
 <body>
   <h3>Вставьте ссылку:</h3>
-  <input type="text" id="urlInput" placeholder="https://example.com" autocomplete="url" autocorrect="off" autocapitalize="none" />
+  <input
+    type="url"
+    id="urlInput"
+    placeholder="https://example.com"
+    autocomplete="url"
+    autocorrect="off"
+    autocapitalize="none"
+  />
   <button id="runBtn">Запустить парсер</button>
-
   <pre id="result"></pre>
 
   <script>
-    const token = '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'; // Токен GitHub с правами на repo
-    const repoOwner = 'Fiklesss';
-    const repoName = 'drom_parser';
-    const envFilePath = '.env';
-    const branch = 'main';
+    let token = "";
+
+    async function fetchToken() {
+      try {
+        const resp = await fetch(
+          "https://57aaf83a-77a9-4d4f-b60b-c26cdb10907c-00-u5jj7br9watw.sisko.replit.dev/api/token"
+        );
+        const data = await resp.json();
+        if (resp.ok && data.token) {
+          token = data.token;
+          console.log("Токен получен");
+        } else {
+          throw new Error(data.error || "Ошибка при получении токена");
+        }
+      } catch (e) {
+        document.getElementById("result").textContent =
+          "❌ Не удалось получить токен: " + e.message;
+      }
+    }
 
     async function getFileSha() {
-      const res = await fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/contents/${envFilePath}?ref=${branch}`, {
-        headers: { Authorization: `token ${token}` }
-      });
-      if (!res.ok) throw new Error('Не удалось получить .env файл: ' + res.status);
+      const res = await fetch(
+        `https://api.github.com/repos/Fiklesss/drom_parser/contents/.env?ref=main`,
+        {
+          headers: { Authorization: `token ${token}` },
+        }
+      );
+      if (!res.ok) throw new Error("Не удалось получить .env файл: " + res.status);
       const data = await res.json();
       return data.sha;
     }
 
     async function updateEnvFile(newLink, sha) {
-      const res = await fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/contents/${envFilePath}?ref=${branch}`, {
-        headers: { Authorization: `token ${token}` }
-      });
-      if (!res.ok) throw new Error('Не удалось получить содержимое .env');
+      const res = await fetch(
+        `https://api.github.com/repos/Fiklesss/drom_parser/contents/.env?ref=main`,
+        {
+          headers: { Authorization: `token ${token}` },
+        }
+      );
+      if (!res.ok) throw new Error("Не удалось получить содержимое .env");
       const data = await res.json();
       const content = atob(data.content);
 
-      const lines = content.split('\n');
+      const lines = content.split("\n");
       let found = false;
       for (let i = 0; i < lines.length; i++) {
-        if (lines[i].startsWith('DROM=')) {
+        if (lines[i].startsWith("DROM=")) {
           lines[i] = `DROM=${newLink}`;
           found = true;
           break;
@@ -95,51 +164,61 @@
       }
       if (!found) lines.push(`DROM=${newLink}`);
 
-      const updatedContent = lines.join('\n');
+      const updatedContent = lines.join("\n");
       const encodedContent = btoa(updatedContent);
 
       const body = {
         message: `Update DROM link to ${newLink}`,
         content: encodedContent,
         sha: sha,
-        branch: branch
+        branch: "main",
       };
 
-      const updateRes = await fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/contents/${envFilePath}`, {
-        method: 'PUT',
-        headers: {
-          Authorization: `token ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(body)
-      });
+      const updateRes = await fetch(
+        `https://api.github.com/repos/Fiklesss/drom_parser/contents/.env`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `token ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(body),
+        }
+      );
 
-      if (!updateRes.ok) throw new Error('Ошибка при обновлении .env файла');
+      if (!updateRes.ok) throw new Error("Ошибка при обновлении .env файла");
       return true;
     }
 
-    document.getElementById('runBtn').onclick = async () => {
-      const url = document.getElementById('urlInput').value.trim();
-      const result = document.getElementById('result');
-      result.textContent = '';
+    document.getElementById("runBtn").onclick = async () => {
+      const url = document.getElementById("urlInput").value.trim();
+      const result = document.getElementById("result");
+      result.textContent = "";
 
       if (!url) {
-        alert('Введите ссылку!');
+        alert("Введите ссылку!");
+        return;
+      }
+      if (!token) {
+        result.textContent = "❌ Токен не загружен.";
         return;
       }
 
       try {
-        result.textContent = 'Получаю текущий sha файла...';
+        result.textContent = "Получаю текущий sha файла...";
         const sha = await getFileSha();
 
-        result.textContent = 'Обновляю .env...';
+        result.textContent = "Обновляю .env...";
         await updateEnvFile(url, sha);
 
-        result.textContent = '✅ Успешно! Парсер запущен.';
+        result.textContent = "✅ Успешно! Парсер запущен.";
       } catch (err) {
-        result.textContent = '❌ Ошибка: ' + err.message;
+        result.textContent = "❌ Ошибка: " + err.message;
       }
     };
+
+    // Получаем токен сразу при загрузке страницы
+    fetchToken();
   </script>
 </body>
 </html>
