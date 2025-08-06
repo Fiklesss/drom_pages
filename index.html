@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
   <title>Запустить программу</title>
-  
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
@@ -96,26 +95,6 @@
       }
     }
   </style>
-
-  <script>
-    // Список разрешённых Telegram user_id
-    const allowedUserIds = [707964961]; // замените на нужные ID
-
-    window.addEventListener("load", () => {
-      if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe) {
-        const tgUser = window.Telegram.WebApp.initDataUnsafe.user;
-
-        if (!tgUser || !allowedUserIds.includes(tgUser.id)) {
-          document.body.innerHTML = "<h1 style='color: red; text-align: center; margin-top: 40vh;'>🚫 Доступ запрещён</h1>";
-          return;
-        }
-
-        console.log("Пользователь авторизован:", tgUser.username || tgUser.first_name);
-      } else {
-        document.body.innerHTML = "<h1 style='color: red; text-align: center; margin-top: 40vh;'>❌ Запустите сайт из Telegram</h1>";
-      }
-    });
-  </script>
 </head>
 
 <body>
